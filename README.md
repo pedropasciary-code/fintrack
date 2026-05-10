@@ -1,6 +1,6 @@
 # FinTrack — Controle Financeiro Pessoal
 
-Stack: **Next.js 14** · **Supabase** · **Claude API** · **Recharts** · **Tailwind CSS**
+Stack: **Next.js 14** · **Supabase** · **Recharts** · **Tailwind CSS**
 
 ---
 
@@ -8,7 +8,6 @@ Stack: **Next.js 14** · **Supabase** · **Claude API** · **Recharts** · **Tai
 
 - Node.js 18+ instalado
 - Conta gratuita no [Supabase](https://supabase.com)
-- Chave de API da [Anthropic](https://console.anthropic.com)
 
 ---
 
@@ -38,6 +37,16 @@ create table limite_semanal (
 
 -- Insere a config inicial
 insert into limite_semanal (id, valor) values (1, 500);
+
+-- Tabela de gastos fixos mensais
+create table gastos_fixos (
+  id              bigserial primary key,
+  descricao       text    not null,
+  valor           numeric not null,
+  categoria       text    not null,
+  dia_vencimento  int     not null check (dia_vencimento between 1 and 28),
+  ativo           boolean not null default true
+);
 ```
 
 3. Vá em **Settings → API** e copie:
@@ -64,7 +73,6 @@ Abra `.env.local` e preencha:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://SEU_PROJETO.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_anon_key_aqui
-ANTHROPIC_API_KEY=sk-ant-api03-...
 ```
 
 ```bash
@@ -83,7 +91,7 @@ Acesse http://localhost:3000
 3. Na pasta do projeto: `vercel`
 4. Siga o wizard (Next.js é detectado automaticamente)
 5. Adicione as variáveis de ambiente no painel da Vercel:
-   - Settings → Environment Variables → adicione as 3 variáveis do `.env.local`
+   - Settings → Environment Variables → adicione as 2 variáveis do `.env.local` (Supabase URL e Anon Key)
 6. Faça redeploy: `vercel --prod`
 
 Pronto! O app estará acessível de qualquer dispositivo pelo link da Vercel.
@@ -109,11 +117,11 @@ fintrack/
 │   │   ├── lancamentos/     # Formulário de lançamentos
 │   │   ├── categorias/      # Gastos por categoria
 │   │   ├── limites/         # Configuração de limite semanal
-│   │   └── ia/              # Chat com IA
+│   │   └── fixos/           # Gerenciar gastos fixos mensais
 │   ├── api/
 │   │   ├── lancamentos/     # GET e POST de lançamentos
 │   │   ├── limite/          # GET e POST do limite semanal
-│   │   └── ia/              # POST — chat com Claude API
+│   │   └── fixos/           # GET, POST, PATCH, DELETE de gastos fixos
 │   ├── globals.css
 │   └── layout.tsx
 ├── components/
@@ -138,4 +146,4 @@ fintrack/
 | Lançar | Formulário para gastos e ganhos com categoria e data |
 | Categorias | Breakdown visual por categoria com barra de progresso |
 | Limite semanal | Configuração + status em tempo real com barra colorida |
-| Análise IA | Chat com Claude que analisa seus dados financeiros reais |
+| Fixos mensais | Cadastro de gastos recorrentes com dia de vencimento e toggle ativo/inativo |

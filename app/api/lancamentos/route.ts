@@ -27,3 +27,22 @@ export async function POST(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(inserted, { status: 201 })
 }
+
+export async function PATCH(req: Request) {
+  const { id, descricao, valor, categoria, tipo, data } = await req.json()
+  if (!id) return NextResponse.json({ error: 'ID obrigatório' }, { status: 400 })
+  const { error } = await supabase
+    .from('lancamentos')
+    .update({ descricao, valor: Number(valor), categoria, tipo, data })
+    .eq('id', id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true })
+}
+
+export async function DELETE(req: Request) {
+  const { id } = await req.json()
+  if (!id) return NextResponse.json({ error: 'ID obrigatório' }, { status: 400 })
+  const { error } = await supabase.from('lancamentos').delete().eq('id', id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true })
+}

@@ -1,18 +1,19 @@
 import {
-  supabase, fmtBRL, isThisMonth,
+  supabase, fmtBRL, isNoCiclo,
   CAT_COLORS, ALL_CATS, type Lancamento,
 } from '@/lib/supabase'
 
 export const revalidate = 0
 
 export default async function CategoriasPage() {
-  const { data } = await supabase
-    .from('lancamentos')
-    .select('*')
-    .order('data', { ascending: false })
+  const [{ data }, { data: configData }] = await Promise.all([
+    supabase.from('lancamentos').select('*').order('data', { ascending: false }),
+    supabase.from('configuracoes').select('dia_reset').eq('id', 1).single(),
+  ])
 
+  const diaReset    = (configData?.dia_reset ?? 1) as number
   const lancamentos = (data ?? []) as Lancamento[]
-  const mesGastos   = lancamentos.filter(l => l.tipo === 'gasto' && isThisMonth(l.data))
+  const mesGastos   = lancamentos.filter(l => l.tipo === 'gasto' && isNoCiclo(l.data, diaReset))
   const totalMes    = mesGastos.reduce((s, l) => s + l.valor, 0)
 
   const bycat: Record<string, Lancamento[]> = {}
@@ -32,13 +33,13 @@ export default async function CategoriasPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold">Gastos por categoria</h1>
         <span className="text-sm text-gray-400">
-          Total: <strong className="text-gray-700">{fmtBRL(totalMes)}</strong> este mês
+          Total: <strong className="text-gray-700">{fmtBRL(totalMes)}</strong> este ciclo
         </span>
       </div>
 
       {entries.length === 0 ? (
         <div className="card p-8 text-center text-sm text-gray-400">
-          Nenhum gasto registrado este mês.
+          Nenhum gasto registrado neste ciclo.
         </div>
       ) : (
         <div className="space-y-4">
@@ -50,7 +51,6 @@ export default async function CategoriasPage() {
 
             return (
               <div key={cat} className="card p-5">
-                {/* Category header */}
                 <div className="flex items-center gap-3 mb-3">
                   <div
                     className="w-9 h-9 rounded-lg flex items-center justify-center text-base shrink-0"
@@ -79,7 +79,6 @@ export default async function CategoriasPage() {
                   </div>
                 </div>
 
-                {/* Transactions */}
                 <ul className="divide-y divide-gray-50 mt-2">
                   {items.slice(0, 5).map(l => (
                     <li key={l.id} className="flex items-center justify-between py-2">

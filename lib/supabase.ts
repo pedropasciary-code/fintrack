@@ -17,6 +17,36 @@ export type Lancamento = {
   created_at: string
 }
 
+export type GastoFixo = {
+  id: number
+  descricao: string
+  valor: number
+  categoria: string
+  dia_vencimento: number
+  ativo: boolean
+  tipo: 'gasto' | 'ganho'
+}
+
+export type Parcelamento = {
+  id: number
+  descricao: string
+  valor_parcela: number
+  num_parcelas: number
+  parcelas_pagas: number
+  categoria: string
+  dia_vencimento: number
+  data_inicio: string
+  ativo: boolean
+}
+
+export type Meta = {
+  id: number
+  descricao: string
+  valor_alvo: number
+  prazo: string | null
+  ativo: boolean
+}
+
 // ─── Categories ───────────────────────────────────────────────────────────────
 
 export const CATS_GASTO = [
@@ -76,4 +106,31 @@ export function isThisMonth(dateStr: string) {
   const d = new Date(dateStr + 'T12:00:00')
   const n = new Date()
   return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear()
+}
+
+export function getCicloAtual(diaReset: number): Date {
+  const hoje = new Date()
+  let ano = hoje.getFullYear()
+  let mes = hoje.getMonth()
+  if (hoje.getDate() < diaReset) {
+    if (mes === 0) { mes = 11; ano-- } else mes--
+  }
+  return new Date(ano, mes, diaReset, 0, 0, 0, 0)
+}
+
+export function isNoCiclo(dateStr: string, diaReset: number): boolean {
+  return new Date(dateStr + 'T12:00:00') >= getCicloAtual(diaReset)
+}
+
+export function isNoCicloAnterior(dateStr: string, diaReset: number): boolean {
+  const d = new Date(dateStr + 'T12:00:00')
+  const inicioAtual = getCicloAtual(diaReset)
+  const inicioAnterior = new Date(inicioAtual)
+  if (inicioAnterior.getMonth() === 0) {
+    inicioAnterior.setFullYear(inicioAnterior.getFullYear() - 1)
+    inicioAnterior.setMonth(11)
+  } else {
+    inicioAnterior.setMonth(inicioAnterior.getMonth() - 1)
+  }
+  return d >= inicioAnterior && d < inicioAtual
 }
