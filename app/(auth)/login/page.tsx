@@ -19,13 +19,13 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      setError('E-mail ou senha inválidos.')
+      setError(error.message)
       setLoading(false)
       return
     }
 
-    router.push('/')
-    router.refresh()
+    // Full reload so the server picks up the new session cookie
+    window.location.href = '/'
   }
 
   return (
