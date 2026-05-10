@@ -7,7 +7,7 @@ import {
 import AlertaBanner from '@/components/AlertaBanner'
 import BannerFixosPendentes from '@/components/BannerFixosPendentes'
 import DashboardCharts from '@/components/DashboardCharts'
-import { TrendingUp, TrendingDown, Wallet, Target, ArrowUpCircle, ArrowDownCircle, CreditCard, TrendingUp as Projection } from 'lucide-react'
+import { TrendingUp, TrendingDown, Wallet, Target, CreditCard, CalendarDays } from 'lucide-react'
 
 export const revalidate = 0
 
@@ -56,31 +56,27 @@ export default async function DashboardPage() {
   const gastosCiclo    = cicloItems.filter(l => l.tipo === 'gasto').reduce((s, l) => s + l.valor, 0)
   const gastosSemanais = lancamentos.filter(l => l.tipo === 'gasto' && isThisWeek(l.data)).reduce((s, l) => s + l.valor, 0)
 
-  // Fixos
-  const ganhosFixos = fixosAtivos.filter(f => f.tipo === 'ganho').reduce((s, f) => s + f.valor, 0)
-  const gastosFixos = fixosAtivos.filter(f => f.tipo === 'gasto').reduce((s, f) => s + f.valor, 0)
-  const netoFixos   = ganhosFixos - gastosFixos
-
-  // Parcelamentos ativos com parcelas restantes
+  // Fixos e parcelamentos
+  const ganhosFixos         = fixosAtivos.filter(f => f.tipo === 'ganho').reduce((s, f) => s + f.valor, 0)
+  const gastosFixos         = fixosAtivos.filter(f => f.tipo === 'gasto').reduce((s, f) => s + f.valor, 0)
   const parcelamentosAtivos = parcelamentos.filter(p => p.parcelas_pagas < p.num_parcelas)
   const gastosParcelamentos = parcelamentosAtivos.reduce((s, p) => s + p.valor_parcela, 0)
+  const comprometidoMes     = gastosFixos + gastosParcelamentos
 
-  // Saldo projetado (ciclo + fixos + parcelamentos)
-  const saldoProjetado = ganhosCiclo - gastosCiclo + netoFixos - gastosParcelamentos
+  // Disponível: do que ganhei no ciclo, quanto sobra depois de gastos e compromissos fixos
+  const disponivel = ganhosCiclo - gastosCiclo - comprometidoMes
 
-  // Projeção do fim do ciclo
-  const cicloInicio    = getCicloAtual(diaReset)
-  const hoje           = new Date(); hoje.setHours(12, 0, 0, 0)
-  const diasPassados   = Math.max(1, Math.round((hoje.getTime() - cicloInicio.getTime()) / 86400000))
-  const fimCiclo       = new Date(cicloInicio)
+  // Ritmo diário: quanto posso gastar por dia nos dias restantes
+  const cicloInicio   = getCicloAtual(diaReset)
+  const hoje          = new Date(); hoje.setHours(12, 0, 0, 0)
+  const diasPassados  = Math.max(1, Math.round((hoje.getTime() - cicloInicio.getTime()) / 86400000))
+  const fimCiclo      = new Date(cicloInicio)
   fimCiclo.getMonth() === 11
     ? (fimCiclo.setFullYear(fimCiclo.getFullYear() + 1), fimCiclo.setMonth(0))
     : fimCiclo.setMonth(fimCiclo.getMonth() + 1)
-  const duracaoCiclo        = Math.round((fimCiclo.getTime() - cicloInicio.getTime()) / 86400000)
-  const diasRestantes        = Math.max(0, duracaoCiclo - diasPassados)
-  const mediaGastoDiario     = gastosCiclo / diasPassados
-  const gastoProjetadoRest   = mediaGastoDiario * diasRestantes
-  const saldoFimCiclo        = ganhosCiclo - gastosCiclo + netoFixos - gastosParcelamentos - gastoProjetadoRest
+  const duracaoCiclo  = Math.round((fimCiclo.getTime() - cicloInicio.getTime()) / 86400000)
+  const diasRestantes = Math.max(0, duracaoCiclo - diasPassados)
+  const ritmoDiario   = disponivel > 0 && diasRestantes > 0 ? disponivel / diasRestantes : 0
 
   // Saldo cumulativo (metas)
   const totalGanhosAll = lancamentos.filter(l => l.tipo === 'ganho').reduce((s, l) => s + l.valor, 0)
@@ -132,56 +128,68 @@ export default async function DashboardPage() {
       <AlertaBanner gastosSemanais={gastosSemanais} limiteSemanal={limiteSemanal} />
       <BannerFixosPendentes pendentes={fixosPendentes} />
 
-      {/* Row 1: métricas do ciclo */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
-        {[
-          { label: 'Saldo projetado',   value: fmtBRL(saldoProjetado),  icon: Wallet,       color: saldoProjetado >= 0  ? 'text-brand-400' : 'text-red-500' },
-          { label: 'Ganhos do ciclo',   value: fmtBRL(ganhosCiclo),     icon: TrendingUp,   color: 'text-brand-400' },
-          { label: 'Gastos do ciclo',   value: fmtBRL(gastosCiclo),     icon: TrendingDown, color: 'text-red-500' },
-          { label: 'Gasto esta semana', value: fmtBRL(gastosSemanais),  icon: Target,       color: gastosSemanais > limiteSemanal ? 'text-red-500' : 'text-amber-500' },
-        ].map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="card p-4">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">{label}</p>
-              <Icon size={14} className={color} />
-            </div>
-            <p className={`text-lg font-semibold ${color}`}>{value}</p>
+      {/* 6 métricas principais */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+        <div className="card p-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">Ganhos do ciclo</p>
+            <TrendingUp size={14} className="text-brand-400" />
           </div>
-        ))}
-      </div>
+          <p className="text-lg font-semibold text-brand-400">+{fmtBRL(ganhosCiclo)}</p>
+        </div>
 
-      {/* Row 2: fixos + parcelamentos + projeção */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
         <div className="card p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Ganhos fixos/mês</p>
-            <ArrowUpCircle size={14} className="text-brand-400" />
+            <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">Gastos do ciclo</p>
+            <TrendingDown size={14} className="text-red-500" />
           </div>
-          <p className="text-lg font-semibold text-brand-400">+{fmtBRL(ganhosFixos)}</p>
+          <p className="text-lg font-semibold text-red-500">−{fmtBRL(gastosCiclo)}</p>
         </div>
+
         <div className="card p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Gastos fixos/mês</p>
-            <ArrowDownCircle size={14} className="text-red-500" />
-          </div>
-          <p className="text-lg font-semibold text-red-500">−{fmtBRL(gastosFixos)}</p>
-        </div>
-        <div className="card p-4">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Parcelamentos/mês</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">Comprometido/mês</p>
             <CreditCard size={14} className="text-amber-500" />
           </div>
-          <p className="text-lg font-semibold text-amber-500">−{fmtBRL(gastosParcelamentos)}</p>
+          <p className="text-lg font-semibold text-amber-500">−{fmtBRL(comprometidoMes)}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+            fixos {fmtBRL(gastosFixos)} + parcelas {fmtBRL(gastosParcelamentos)}
+          </p>
         </div>
+
         <div className="card p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Fim do ciclo (prev.)</p>
-            <Projection size={14} className={saldoFimCiclo >= 0 ? 'text-brand-400' : 'text-red-500'} />
+            <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">Gastos esta semana</p>
+            <Target size={14} className={gastosSemanais > limiteSemanal ? 'text-red-500' : 'text-amber-500'} />
           </div>
-          <p className={`text-lg font-semibold ${saldoFimCiclo >= 0 ? 'text-brand-400' : 'text-red-500'}`}>
-            {fmtBRL(saldoFimCiclo)}
+          <p className={`text-lg font-semibold ${gastosSemanais > limiteSemanal ? 'text-red-500' : 'text-amber-500'}`}>
+            {fmtBRL(gastosSemanais)}
           </p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{diasRestantes} dias restantes</p>
+          {limiteSemanal > 0 && (
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">limite {fmtBRL(limiteSemanal)}</p>
+          )}
+        </div>
+
+        <div className="card p-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">Disponível no ciclo</p>
+            <Wallet size={14} className={disponivel >= 0 ? 'text-brand-400' : 'text-red-500'} />
+          </div>
+          <p className={`text-lg font-semibold ${disponivel >= 0 ? 'text-brand-400' : 'text-red-500'}`}>
+            {fmtBRL(disponivel)}
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">após gastos e compromissos</p>
+        </div>
+
+        <div className="card p-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">Ritmo diário</p>
+            <CalendarDays size={14} className={ritmoDiario > 0 ? 'text-brand-400' : 'text-red-500'} />
+          </div>
+          <p className={`text-lg font-semibold ${ritmoDiario > 0 ? 'text-brand-400' : 'text-red-500'}`}>
+            {ritmoDiario > 0 ? fmtBRL(ritmoDiario) : '—'}
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">por dia · {diasRestantes} dias restantes</p>
         </div>
       </div>
 
