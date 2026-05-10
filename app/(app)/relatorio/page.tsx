@@ -1,4 +1,5 @@
-import { supabase, fmtBRL, isNoCiclo, isNoCicloAnterior, ALL_CATS, type Lancamento } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-server'
+import { fmtBRL, isNoCiclo, isNoCicloAnterior, ALL_CATS, type Lancamento } from '@/lib/supabase'
 
 export const revalidate = 0
 
@@ -8,6 +9,7 @@ function pctChange(curr: number, prev: number) {
 }
 
 export default async function RelatorioPage() {
+  const supabase = createClient()
   const [{ data }, { data: configData }] = await Promise.all([
     supabase.from('lancamentos').select('*').order('data', { ascending: false }),
     supabase.from('configuracoes').select('dia_reset').eq('id', 1).single(),

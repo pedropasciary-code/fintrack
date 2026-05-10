@@ -2,12 +2,16 @@
 import { useState, useEffect } from 'react'
 import { CATS_GASTO, CAT_COLORS, fmtBRL, type Parcelamento } from '@/lib/supabase'
 import { Trash2, CheckCircle, Plus } from 'lucide-react'
+import Spinner from '@/components/Spinner'
+import ConfirmModal from '@/components/ConfirmModal'
 
 function todayStr() { return new Date().toISOString().split('T')[0] }
 
 export default function ParcelamentosPage() {
   const [parcelamentos, setParcelamentos] = useState<Parcelamento[]>([])
   const [fetching, setFetching]           = useState(true)
+  const [error, setError]                 = useState('')
+  const [confirmId, setConfirmId]         = useState<number | null>(null)
   const [form, setForm] = useState({
     descricao: '', valor_parcela: '', num_parcelas: '',
     categoria: 'outros', dia_vencimento: '5', data_inicio: todayStr(),
@@ -17,10 +21,15 @@ export default function ParcelamentosPage() {
   const [erro, setErro] = useState('')
 
   async function load() {
+    setError('')
     try {
       const data = await fetch('/api/parcelamentos').then(r => r.json())
       setParcelamentos(Array.isArray(data) ? data : [])
-    } catch { setParcelamentos([]) } finally { setFetching(false) }
+    } catch {
+      setError('Erro ao carregar parcelamentos. Tente recarregar a página.')
+    } finally {
+      setFetching(false)
+    }
   }
 
   useEffect(() => { load() }, [])
@@ -61,24 +70,33 @@ export default function ParcelamentosPage() {
     load()
   }
 
-  async function remover(id: number) {
+  async function confirmDelete() {
+    if (confirmId === null) return
     await fetch('/api/parcelamentos', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id: confirmId }),
     })
+    setConfirmId(null)
     load()
   }
 
-  const ativos     = parcelamentos.filter(p => p.parcelas_pagas < p.num_parcelas)
-  const concluidos = parcelamentos.filter(p => p.parcelas_pagas >= p.num_parcelas)
+  const ativos      = parcelamentos.filter(p => p.parcelas_pagas < p.num_parcelas)
+  const concluidos  = parcelamentos.filter(p => p.parcelas_pagas >= p.num_parcelas)
   const totalMensal = ativos.reduce((s, p) => s + p.valor_parcela, 0)
 
   return (
     <div>
+      <ConfirmModal
+        open={confirmId !== null}
+        message="O parcelamento será removido permanentemente."
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmId(null)}
+      />
+
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold">Parcelamentos</h1>
-        {!fetching && ativos.length > 0 && (
+        {!fetching && !error && ativos.length > 0 && (
           <span className="text-sm text-gray-400">
             Total/mês: <strong className="text-red-500">−{fmtBRL(totalMensal)}</strong>
           </span>
@@ -125,8 +143,7 @@ export default function ParcelamentosPage() {
         {form.valor_parcela && form.num_parcelas && Number(form.valor_parcela) > 0 && Number(form.num_parcelas) > 0 && (
           <p className="text-xs text-gray-400 mt-3 mb-4">
             Total: <strong>{fmtBRL(Number(form.valor_parcela) * Number(form.num_parcelas))}</strong>
-            {' · '}quitado em{' '}
-            <strong>{Number(form.num_parcelas)} meses</strong>
+            {' · '}quitado em <strong>{Number(form.num_parcelas)} meses</strong>
           </p>
         )}
 
@@ -143,8 +160,17 @@ export default function ParcelamentosPage() {
         )}
       </div>
 
-      {/* Ativos */}
-      {!fetching && ativos.length === 0 && concluidos.length === 0 ? (
+      {/* Lista */}
+      {fetching ? (
+        <div className="card p-10 flex justify-center">
+          <Spinner size={24} />
+        </div>
+      ) : error ? (
+        <div className="card p-8 text-center">
+          <p className="text-sm text-red-500 mb-3">{error}</p>
+          <button onClick={load} className="text-sm text-brand-400 hover:underline">Tentar novamente</button>
+        </div>
+      ) : ativos.length === 0 && concluidos.length === 0 ? (
         <div className="card p-8 text-center text-sm text-gray-400">Nenhum parcelamento cadastrado.</div>
       ) : (
         <>
@@ -177,7 +203,7 @@ export default function ParcelamentosPage() {
                       <button onClick={() => pagarParcela(p)} className="btn-primary text-xs py-1.5 px-4 flex items-center gap-1 flex-1 justify-center">
                         <Plus size={12} /> Registrar parcela paga
                       </button>
-                      <button onClick={() => remover(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
+                      <button onClick={() => setConfirmId(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -201,7 +227,7 @@ export default function ParcelamentosPage() {
                         <p className="text-sm text-gray-700">{p.descricao}</p>
                         <p className="text-xs text-gray-400">{cat?.label} · {p.num_parcelas}× {fmtBRL(p.valor_parcela)} · quitado</p>
                       </div>
-                      <button onClick={() => remover(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
+                      <button onClick={() => setConfirmId(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
                         <Trash2 size={13} />
                       </button>
                     </li>

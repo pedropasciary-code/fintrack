@@ -2,24 +2,33 @@
 import { useState, useEffect, useMemo } from 'react'
 import { ALL_CATS, CAT_COLORS, CATS_GASTO, CATS_GANHO, fmtBRL, type Lancamento } from '@/lib/supabase'
 import { Pencil, Trash2, Check, X } from 'lucide-react'
+import Spinner from '@/components/Spinner'
+import ConfirmModal from '@/components/ConfirmModal'
 
 export default function HistoricoPage() {
   const [lancamentos, setLancamentos] = useState<Lancamento[]>([])
   const [fetching, setFetching]       = useState(true)
+  const [error, setError]             = useState('')
   const [filtroTipo, setFiltroTipo]   = useState<'todos' | 'gasto' | 'ganho'>('todos')
   const [filtroCat, setFiltroCat]     = useState('todas')
   const [busca, setBusca]             = useState('')
   const [editingId, setEditingId]     = useState<number | null>(null)
+  const [confirmId, setConfirmId]     = useState<number | null>(null)
   const [editForm, setEditForm]       = useState({
     descricao: '', valor: '', categoria: 'alimentacao',
     tipo: 'gasto' as 'gasto' | 'ganho', data: '',
   })
 
   async function load() {
+    setError('')
     try {
       const data = await fetch('/api/lancamentos').then(r => r.json())
       setLancamentos(Array.isArray(data) ? data : [])
-    } catch { setLancamentos([]) } finally { setFetching(false) }
+    } catch {
+      setError('Erro ao carregar lançamentos. Tente recarregar a página.')
+    } finally {
+      setFetching(false)
+    }
   }
 
   useEffect(() => { load() }, [])
@@ -39,12 +48,14 @@ export default function HistoricoPage() {
     load()
   }
 
-  async function deleteLancamento(id: number) {
+  async function confirmDelete() {
+    if (confirmId === null) return
     await fetch('/api/lancamentos', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id: confirmId }),
     })
+    setConfirmId(null)
     load()
   }
 
@@ -61,6 +72,13 @@ export default function HistoricoPage() {
 
   return (
     <div>
+      <ConfirmModal
+        open={confirmId !== null}
+        message="O lançamento será removido permanentemente."
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmId(null)}
+      />
+
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold">Histórico</h1>
         <span className="text-sm text-gray-400">{filtered.length} lançamento(s)</span>
@@ -91,7 +109,14 @@ export default function HistoricoPage() {
 
       {/* Lista */}
       {fetching ? (
-        <div className="card p-8 text-center text-sm text-gray-400">Carregando...</div>
+        <div className="card p-10 flex justify-center">
+          <Spinner size={24} />
+        </div>
+      ) : error ? (
+        <div className="card p-8 text-center">
+          <p className="text-sm text-red-500 mb-3">{error}</p>
+          <button onClick={load} className="text-sm text-brand-400 hover:underline">Tentar novamente</button>
+        </div>
       ) : filtered.length === 0 ? (
         <div className="card p-8 text-center text-sm text-gray-400">Nenhum lançamento encontrado.</div>
       ) : (
@@ -152,7 +177,7 @@ export default function HistoricoPage() {
                       <button onClick={() => startEdit(l)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
                         <Pencil size={13} />
                       </button>
-                      <button onClick={() => deleteLancamento(l.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
+                      <button onClick={() => setConfirmId(l.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
                         <Trash2 size={13} />
                       </button>
                     </div>

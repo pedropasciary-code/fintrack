@@ -2,17 +2,22 @@
 import { useState, useEffect } from 'react'
 import { fmtBRL, type Meta } from '@/lib/supabase'
 import { CheckCircle, Trash2, Trophy } from 'lucide-react'
+import Spinner from '@/components/Spinner'
+import ConfirmModal from '@/components/ConfirmModal'
 
 export default function MetasPage() {
-  const [metas, setMetas]               = useState<Meta[]>([])
-  const [saldoCumulativo, setSaldo]     = useState(0)
-  const [fetching, setFetching]         = useState(true)
-  const [form, setForm] = useState({ descricao: '', valor_alvo: '', prazo: '' })
-  const [loading, setLoading]           = useState(false)
-  const [ok, setOk]                     = useState(false)
-  const [erro, setErro]                 = useState('')
+  const [metas, setMetas]           = useState<Meta[]>([])
+  const [saldoCumulativo, setSaldo] = useState(0)
+  const [fetching, setFetching]     = useState(true)
+  const [error, setError]           = useState('')
+  const [confirmId, setConfirmId]   = useState<number | null>(null)
+  const [form, setForm]             = useState({ descricao: '', valor_alvo: '', prazo: '' })
+  const [loading, setLoading]       = useState(false)
+  const [ok, setOk]                 = useState(false)
+  const [erro, setErro]             = useState('')
 
   async function load() {
+    setError('')
     try {
       const [metasData, saldoData] = await Promise.all([
         fetch('/api/metas').then(r => r.json()),
@@ -20,7 +25,11 @@ export default function MetasPage() {
       ])
       setMetas(Array.isArray(metasData) ? metasData : [])
       setSaldo(saldoData.saldoCumulativo ?? 0)
-    } catch { } finally { setFetching(false) }
+    } catch {
+      setError('Erro ao carregar metas. Tente recarregar a página.')
+    } finally {
+      setFetching(false)
+    }
   }
 
   useEffect(() => { load() }, [])
@@ -43,20 +52,29 @@ export default function MetasPage() {
     await load()
   }
 
-  async function remover(id: number) {
+  async function confirmDelete() {
+    if (confirmId === null) return
     await fetch('/api/metas', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id: confirmId }),
     })
+    setConfirmId(null)
     load()
   }
 
   return (
     <div>
+      <ConfirmModal
+        open={confirmId !== null}
+        message="A meta será removida permanentemente."
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmId(null)}
+      />
+
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold">Metas de economia</h1>
-        {!fetching && (
+        {!fetching && !error && (
           <span className="text-sm text-gray-400">
             Acumulado: <strong className={saldoCumulativo >= 0 ? 'text-brand-400' : 'text-red-500'}>{fmtBRL(saldoCumulativo)}</strong>
           </span>
@@ -97,15 +115,24 @@ export default function MetasPage() {
       </div>
 
       {/* Lista */}
-      {!fetching && metas.length === 0 ? (
+      {fetching ? (
+        <div className="card p-10 flex justify-center">
+          <Spinner size={24} />
+        </div>
+      ) : error ? (
+        <div className="card p-8 text-center">
+          <p className="text-sm text-red-500 mb-3">{error}</p>
+          <button onClick={load} className="text-sm text-brand-400 hover:underline">Tentar novamente</button>
+        </div>
+      ) : metas.length === 0 ? (
         <div className="card p-8 text-center text-sm text-gray-400">Nenhuma meta cadastrada ainda.</div>
       ) : (
         <div className="space-y-4">
           {metas.map(meta => {
-            const pct     = meta.valor_alvo > 0 ? Math.min(100, Math.round((saldoCumulativo / meta.valor_alvo) * 100)) : 0
+            const pct      = meta.valor_alvo > 0 ? Math.min(100, Math.round((saldoCumulativo / meta.valor_alvo) * 100)) : 0
             const atingida = saldoCumulativo >= meta.valor_alvo
             const barColor = atingida ? '#1D9E75' : pct >= 70 ? '#BA7517' : '#378ADD'
-            const faltam  = Math.max(0, meta.valor_alvo - saldoCumulativo)
+            const faltam   = Math.max(0, meta.valor_alvo - saldoCumulativo)
             return (
               <div key={meta.id} className="card p-5">
                 <div className="flex items-start justify-between mb-3">
@@ -120,7 +147,7 @@ export default function MetasPage() {
                       </p>
                     )}
                   </div>
-                  <button onClick={() => remover(meta.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
+                  <button onClick={() => setConfirmId(meta.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
                     <Trash2 size={13} />
                   </button>
                 </div>

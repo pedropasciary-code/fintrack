@@ -1,5 +1,6 @@
+import { createClient } from '@/lib/supabase-server'
 import {
-  supabase, fmtBRL, isThisWeek, isNoCiclo, getCicloAtual,
+  fmtBRL, isThisWeek, isNoCiclo, getCicloAtual,
   CAT_COLORS, ALL_CATS,
   type Lancamento, type GastoFixo, type Parcelamento, type Meta,
 } from '@/lib/supabase'
@@ -10,6 +11,7 @@ import { TrendingUp, TrendingDown, Wallet, Target, ArrowUpCircle, ArrowDownCircl
 export const revalidate = 0
 
 async function getData() {
+  const supabase = createClient()
   const [
     { data: lancamentos },
     { data: limiteRows },
