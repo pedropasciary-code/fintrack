@@ -1,11 +1,53 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ALL_CATS, CAT_COLORS, CATS_GASTO, CATS_GANHO, fmtBRL, type Lancamento } from '@/lib/supabase'
-import { Pencil, Trash2, Check, X } from 'lucide-react'
+import { Pencil, Trash2, Check, X, CalendarRange } from 'lucide-react'
 import Spinner from '@/components/Spinner'
 import ConfirmModal from '@/components/ConfirmModal'
 
 const PAGE_SIZE = 30
+
+function fmt(d: Date) { return d.toISOString().split('T')[0] }
+
+const PRESETS = [
+  {
+    label: '7 dias',
+    range: () => {
+      const to = new Date(); const from = new Date(); from.setDate(from.getDate() - 6)
+      return { from: fmt(from), to: fmt(to) }
+    },
+  },
+  {
+    label: 'Este mês',
+    range: () => {
+      const now = new Date()
+      return { from: fmt(new Date(now.getFullYear(), now.getMonth(), 1)), to: fmt(now) }
+    },
+  },
+  {
+    label: 'Mês passado',
+    range: () => {
+      const now = new Date()
+      const first = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      const last  = new Date(now.getFullYear(), now.getMonth(), 0)
+      return { from: fmt(first), to: fmt(last) }
+    },
+  },
+  {
+    label: '3 meses',
+    range: () => {
+      const to = new Date(); const from = new Date(); from.setMonth(from.getMonth() - 3)
+      return { from: fmt(from), to: fmt(to) }
+    },
+  },
+  {
+    label: 'Este ano',
+    range: () => {
+      const now = new Date()
+      return { from: fmt(new Date(now.getFullYear(), 0, 1)), to: fmt(now) }
+    },
+  },
+]
 
 export default function HistoricoPage() {
   const [lancamentos, setLancamentos] = useState<Lancamento[]>([])
@@ -18,6 +60,8 @@ export default function HistoricoPage() {
   const [filtroCat, setFiltroCat]     = useState('todas')
   const [busca, setBusca]             = useState('')
   const [debouncedBusca, setDebouncedBusca] = useState('')
+  const [dataInicio, setDataInicio]   = useState('')
+  const [dataFim, setDataFim]         = useState('')
   const [editingId, setEditingId]     = useState<number | null>(null)
   const [confirmId, setConfirmId]     = useState<number | null>(null)
   const [editForm, setEditForm]       = useState({
@@ -25,7 +69,6 @@ export default function HistoricoPage() {
     tipo: 'gasto' as 'gasto' | 'ganho', data: '',
   })
 
-  // Debounce busca
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -33,30 +76,28 @@ export default function HistoricoPage() {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
   }, [busca])
 
-  const buildUrl = useCallback((theOffset: number, tipo: string, cat: string, q: string) => {
-    const params = new URLSearchParams({
-      limit: String(PAGE_SIZE),
-      offset: String(theOffset),
-    })
+  const buildUrl = useCallback((theOffset: number, tipo: string, cat: string, q: string, di: string, df: string) => {
+    const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(theOffset) })
     if (tipo !== 'todos') params.set('tipo', tipo)
     if (cat !== 'todas')  params.set('categoria', cat)
     if (q)                params.set('busca', q)
+    if (di)               params.set('dataInicio', di)
+    if (df)               params.set('dataFim', df)
     return `/api/lancamentos?${params}`
   }, [])
 
-  const fetchPage = useCallback(async (theOffset: number, tipo: string, cat: string, q: string) => {
-    const res = await fetch(buildUrl(theOffset, tipo, cat, q))
+  const fetchPage = useCallback(async (theOffset: number, tipo: string, cat: string, q: string, di: string, df: string) => {
+    const res = await fetch(buildUrl(theOffset, tipo, cat, q, di, df))
     if (!res.ok) throw new Error('Erro ao buscar lançamentos')
     return res.json() as Promise<{ data: Lancamento[]; total: number }>
   }, [buildUrl])
 
-  // Initial load / filter change: reset to first page
   useEffect(() => {
     let cancelled = false
     setFetching(true)
     setError('')
     setOffset(0)
-    fetchPage(0, filtroTipo, filtroCat, debouncedBusca)
+    fetchPage(0, filtroTipo, filtroCat, debouncedBusca, dataInicio, dataFim)
       .then(({ data, total: t }) => {
         if (cancelled) return
         setLancamentos(data)
@@ -65,13 +106,13 @@ export default function HistoricoPage() {
       .catch(() => { if (!cancelled) setError('Erro ao carregar lançamentos. Tente recarregar a página.') })
       .finally(() => { if (!cancelled) setFetching(false) })
     return () => { cancelled = true }
-  }, [filtroTipo, filtroCat, debouncedBusca, fetchPage])
+  }, [filtroTipo, filtroCat, debouncedBusca, dataInicio, dataFim, fetchPage])
 
   async function loadMore() {
     const nextOffset = offset + PAGE_SIZE
     setLoadingMore(true)
     try {
-      const { data, total: t } = await fetchPage(nextOffset, filtroTipo, filtroCat, debouncedBusca)
+      const { data, total: t } = await fetchPage(nextOffset, filtroTipo, filtroCat, debouncedBusca, dataInicio, dataFim)
       setLancamentos(prev => [...prev, ...data])
       setTotal(t)
       setOffset(nextOffset)
@@ -81,6 +122,14 @@ export default function HistoricoPage() {
       setLoadingMore(false)
     }
   }
+
+  function applyPreset(preset: typeof PRESETS[0]) {
+    const { from, to } = preset.range()
+    setDataInicio(from)
+    setDataFim(to)
+  }
+
+  function clearDates() { setDataInicio(''); setDataFim('') }
 
   function startEdit(l: Lancamento) {
     setEditingId(l.id)
@@ -114,9 +163,10 @@ export default function HistoricoPage() {
     setConfirmId(null)
   }
 
-  const cats    = filtroTipo === 'gasto' ? CATS_GASTO : filtroTipo === 'ganho' ? CATS_GANHO : ALL_CATS
+  const cats     = filtroTipo === 'gasto' ? CATS_GASTO : filtroTipo === 'ganho' ? CATS_GANHO : ALL_CATS
   const editCats = editForm.tipo === 'gasto' ? CATS_GASTO : CATS_GANHO
   const hasMore  = offset + PAGE_SIZE < total
+  const hasDateFilter = dataInicio || dataFim
 
   return (
     <div>
@@ -137,26 +187,63 @@ export default function HistoricoPage() {
       </div>
 
       {/* Filtros */}
-      <div className="card p-4 mb-5 flex flex-wrap gap-3 items-center">
-        <input
-          className="field flex-1 min-w-[160px]"
-          placeholder="Buscar descrição..."
-          value={busca}
-          onChange={e => setBusca(e.target.value)}
-        />
-        <select
-          className="field w-36"
-          value={filtroTipo}
-          onChange={e => { setFiltroTipo(e.target.value as 'todos' | 'gasto' | 'ganho'); setFiltroCat('todas') }}
-        >
-          <option value="todos">Todos</option>
-          <option value="gasto">Gastos</option>
-          <option value="ganho">Ganhos</option>
-        </select>
-        <select className="field w-44" value={filtroCat} onChange={e => setFiltroCat(e.target.value)}>
-          <option value="todas">Todas as cats.</option>
-          {cats.map(c => <option key={c.value} value={c.value}>{c.emoji} {c.label}</option>)}
-        </select>
+      <div className="card p-4 mb-5 space-y-3">
+        {/* Linha 1: busca + tipo + categoria */}
+        <div className="flex flex-wrap gap-3 items-center">
+          <input
+            className="field flex-1 min-w-[160px]"
+            placeholder="Buscar descrição..."
+            value={busca}
+            onChange={e => setBusca(e.target.value)}
+          />
+          <select
+            className="field w-36"
+            value={filtroTipo}
+            onChange={e => { setFiltroTipo(e.target.value as 'todos' | 'gasto' | 'ganho'); setFiltroCat('todas') }}
+          >
+            <option value="todos">Todos</option>
+            <option value="gasto">Gastos</option>
+            <option value="ganho">Ganhos</option>
+          </select>
+          <select className="field w-44" value={filtroCat} onChange={e => setFiltroCat(e.target.value)}>
+            <option value="todas">Todas as cats.</option>
+            {cats.map(c => <option key={c.value} value={c.value}>{c.emoji} {c.label}</option>)}
+          </select>
+        </div>
+
+        {/* Linha 2: período */}
+        <div className="flex flex-wrap gap-2 items-center">
+          <CalendarRange size={14} className="text-gray-400 dark:text-gray-500 shrink-0" />
+          <input
+            type="date"
+            className="field w-36"
+            value={dataInicio}
+            onChange={e => setDataInicio(e.target.value)}
+          />
+          <span className="text-xs text-gray-400 dark:text-gray-500">até</span>
+          <input
+            type="date"
+            className="field w-36"
+            value={dataFim}
+            onChange={e => setDataFim(e.target.value)}
+          />
+          {hasDateFilter && (
+            <button onClick={clearDates} className="text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors flex items-center gap-1">
+              <X size={12} /> limpar
+            </button>
+          )}
+          <div className="flex flex-wrap gap-1.5 ml-1">
+            {PRESETS.map(p => (
+              <button
+                key={p.label}
+                onClick={() => applyPreset(p)}
+                className="text-xs px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-brand-400 hover:text-brand-400 transition-colors"
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Lista */}
@@ -168,7 +255,7 @@ export default function HistoricoPage() {
         <div className="card p-8 text-center">
           <p className="text-sm text-red-500 mb-3">{error}</p>
           <button
-            onClick={() => { setError(''); setFetching(true); fetchPage(0, filtroTipo, filtroCat, debouncedBusca).then(({ data, total: t }) => { setLancamentos(data); setTotal(t); setOffset(0) }).catch(() => setError('Erro ao carregar.')).finally(() => setFetching(false)) }}
+            onClick={() => { setError(''); setFetching(true); fetchPage(0, filtroTipo, filtroCat, debouncedBusca, dataInicio, dataFim).then(({ data, total: t }) => { setLancamentos(data); setTotal(t); setOffset(0) }).catch(() => setError('Erro ao carregar.')).finally(() => setFetching(false)) }}
             className="text-sm text-brand-400 hover:underline"
           >
             Tentar novamente

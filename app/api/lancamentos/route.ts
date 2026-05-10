@@ -10,9 +10,11 @@ export async function GET(req: Request) {
   const limitParam = searchParams.get('limit')
   const offset     = Math.max(0, Number(searchParams.get('offset') ?? 0))
   const limit      = Math.min(Math.max(1, Number(limitParam ?? 30)), 100)
-  const tipo       = searchParams.get('tipo')      ?? ''
-  const categoria  = searchParams.get('categoria') ?? ''
-  const busca      = searchParams.get('busca')     ?? ''
+  const tipo        = searchParams.get('tipo')       ?? ''
+  const categoria   = searchParams.get('categoria')  ?? ''
+  const busca       = searchParams.get('busca')      ?? ''
+  const dataInicio  = searchParams.get('dataInicio') ?? ''
+  const dataFim     = searchParams.get('dataFim')    ?? ''
 
   let query = supabase
     .from('lancamentos')
@@ -24,6 +26,8 @@ export async function GET(req: Request) {
   if (tipo      && tipo      !== 'todos') query = query.eq('tipo',       tipo)
   if (categoria && categoria !== 'todas') query = query.eq('categoria',  categoria)
   if (busca)                              query = query.ilike('descricao', `%${busca}%`)
+  if (dataInicio)                         query = query.gte('data', dataInicio)
+  if (dataFim)                            query = query.lte('data', dataFim)
 
   const { data, error, count } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
