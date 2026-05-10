@@ -88,25 +88,27 @@ export default async function DashboardPage() {
     color: CAT_COLORS[cat] ?? '#B4B2A9',
   }))
 
-  // Bar chart — 6 meses calendário
-  const now = new Date()
-  const months: Record<string, { ganhos: number; gastos: number }> = {}
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    months[d.toLocaleDateString('pt-BR', { month: 'short' })] = { ganhos: 0, gastos: 0 }
-  }
-  lancamentos.forEach(l => {
-    const key = new Date(l.data + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'short' })
-    if (key in months) {
-      if (l.tipo === 'ganho') months[key].ganhos += l.valor
-      else months[key].gastos += l.valor
+  // Bar chart — últimos 6 ciclos financeiros
+  const barData = Array.from({ length: 6 }, (_, i) => {
+    const start = new Date(cicloInicio)
+    start.setMonth(start.getMonth() - (5 - i))
+    const end = new Date(start)
+    end.setMonth(end.getMonth() + 1)
+
+    let ganhos = 0, gastos = 0
+    lancamentos.forEach(l => {
+      const d = new Date(l.data + 'T12:00:00')
+      if (d >= start && d < end) {
+        if (l.tipo === 'ganho') ganhos += l.valor
+        else gastos += l.valor
+      }
+    })
+    return {
+      name: start.toLocaleDateString('pt-BR', { month: 'short' }),
+      Ganhos: Math.round(ganhos * 100) / 100,
+      Gastos: Math.round(gastos * 100) / 100,
     }
   })
-  const barData = Object.entries(months).map(([name, v]) => ({
-    name,
-    Ganhos: Math.round(v.ganhos * 100) / 100,
-    Gastos: Math.round(v.gastos * 100) / 100,
-  }))
 
   return (
     <div>

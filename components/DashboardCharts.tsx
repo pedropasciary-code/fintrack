@@ -22,7 +22,7 @@ export default function DashboardCharts({
           Gastos por categoria
         </h3>
         {catData.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-10">Sem gastos este mês</p>
+          <p className="text-sm text-gray-400 text-center py-10">Sem gastos este ciclo</p>
         ) : (
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
@@ -47,7 +47,7 @@ export default function DashboardCharts({
 
       <div className="card p-5">
         <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">
-          Evolução mensal
+          Últimos 6 ciclos
         </h3>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={barData} barCategoryGap="30%">
