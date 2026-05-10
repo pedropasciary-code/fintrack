@@ -1,18 +1,33 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 
-export async function GET() {
+export async function GET(req: Request) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
-  const { data, error } = await supabase
-    .from('lancamentos')
-    .select('*')
-    .order('data', { ascending: false })
+  const { searchParams } = new URL(req.url)
+  const limitParam = searchParams.get('limit')
+  const offset     = Math.max(0, Number(searchParams.get('offset') ?? 0))
+  const limit      = Math.min(Math.max(1, Number(limitParam ?? 30)), 100)
+  const tipo       = searchParams.get('tipo')      ?? ''
+  const categoria  = searchParams.get('categoria') ?? ''
+  const busca      = searchParams.get('busca')     ?? ''
 
+  let query = supabase
+    .from('lancamentos')
+    .select('*', { count: 'exact' })
+    .order('data',       { ascending: false })
+    .order('id',         { ascending: false })
+    .range(offset, offset + limit - 1)
+
+  if (tipo      && tipo      !== 'todos') query = query.eq('tipo',       tipo)
+  if (categoria && categoria !== 'todas') query = query.eq('categoria',  categoria)
+  if (busca)                              query = query.ilike('descricao', `%${busca}%`)
+
+  const { data, error, count } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data)
+  return NextResponse.json({ data: data ?? [], total: count ?? 0 })
 }
 
 export async function POST(req: Request) {
