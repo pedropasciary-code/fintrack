@@ -5,6 +5,7 @@ import {
   type Lancamento, type GastoFixo, type Parcelamento, type Meta,
 } from '@/lib/supabase'
 import AlertaBanner from '@/components/AlertaBanner'
+import BannerFixosPendentes from '@/components/BannerFixosPendentes'
 import DashboardCharts from '@/components/DashboardCharts'
 import { TrendingUp, TrendingDown, Wallet, Target, ArrowUpCircle, ArrowDownCircle, CreditCard, TrendingUp as Projection } from 'lucide-react'
 
@@ -41,7 +42,16 @@ export default async function DashboardPage() {
   const { lancamentos, limiteSemanal, fixosAtivos, parcelamentos, metas, diaReset } = await getData()
 
   // Ciclo atual
-  const cicloItems     = lancamentos.filter(l => isNoCiclo(l.data, diaReset))
+  const cicloItems = lancamentos.filter(l => isNoCiclo(l.data, diaReset))
+
+  // Fixos ainda não lançados neste ciclo
+  const fixosPendentes = fixosAtivos.filter(f =>
+    !cicloItems.some(l =>
+      l.descricao === f.descricao &&
+      l.categoria === f.categoria &&
+      l.tipo      === f.tipo
+    )
+  )
   const ganhosCiclo    = cicloItems.filter(l => l.tipo === 'ganho').reduce((s, l) => s + l.valor, 0)
   const gastosCiclo    = cicloItems.filter(l => l.tipo === 'gasto').reduce((s, l) => s + l.valor, 0)
   const gastosSemanais = lancamentos.filter(l => l.tipo === 'gasto' && isThisWeek(l.data)).reduce((s, l) => s + l.valor, 0)
@@ -120,6 +130,7 @@ export default async function DashboardPage() {
       </div>
 
       <AlertaBanner gastosSemanais={gastosSemanais} limiteSemanal={limiteSemanal} />
+      <BannerFixosPendentes pendentes={fixosPendentes} />
 
       {/* Row 1: métricas do ciclo */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
