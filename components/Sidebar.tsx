@@ -37,7 +37,7 @@ export default function Sidebar({ userEmail }: { userEmail: string }) {
     router.refresh()
   }
   return (
-    <aside className="w-52 shrink-0 bg-white border-r border-gray-100 flex flex-col">
+    <aside className="h-full w-52 shrink-0 bg-white border-r border-gray-100 flex flex-col">
       <div className="px-5 py-5 border-b border-gray-100">
         <span className="text-base font-semibold">
           fin<span className="text-brand-400">track</span>
