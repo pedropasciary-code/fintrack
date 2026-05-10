@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server'
-import { supabase, isThisWeek, type Lancamento } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-server'
+import { isThisWeek, type Lancamento } from '@/lib/supabase'
 
 export async function GET() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+
   const [{ data: limiteRows }, { data: lancamentos }] = await Promise.all([
     supabase.from('limite_semanal').select('*').order('updated_at', { ascending: false }).limit(1),
     supabase.from('lancamentos').select('valor, tipo, data'),
@@ -16,11 +21,14 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+
   const { valor } = await req.json()
   if (!valor || valor <= 0)
     return NextResponse.json({ error: 'Valor inválido' }, { status: 400 })
 
-  // Upsert: usa row de id=1 sempre (uso pessoal, uma única config)
   const { error } = await supabase
     .from('limite_semanal')
     .upsert({ id: 1, valor, updated_at: new Date().toISOString() })

@@ -1,11 +1,12 @@
 'use client'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, PlusCircle, PieChart, Bell,
   Repeat2, Settings, History, Flag, CreditCard, BarChart2,
-  type LucideIcon,
+  LogOut, type LucideIcon,
 } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 type NavLink = { href: string; label: string; icon: LucideIcon }
 type NavItem = NavLink | '---'
@@ -26,8 +27,15 @@ const NAV: NavItem[] = [
   { href: '/config',        label: 'Configurações',   icon: Settings },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ userEmail }: { userEmail: string }) {
   const path = usePathname()
+  const router = useRouter()
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
   return (
     <aside className="w-52 shrink-0 bg-white border-r border-gray-100 flex flex-col">
       <div className="px-5 py-5 border-b border-gray-100">
@@ -55,10 +63,20 @@ export default function Sidebar() {
           )
         )}
       </nav>
-      <div className="px-5 py-4 border-t border-gray-100">
+      <div className="px-5 py-4 border-t border-gray-100 space-y-3">
         <p className="text-xs text-gray-400">
           {new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
         </p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+          <button
+            onClick={handleLogout}
+            title="Sair"
+            className="text-gray-400 hover:text-red-500 transition-colors shrink-0"
+          >
+            <LogOut size={14} />
+          </button>
+        </div>
       </div>
     </aside>
   )

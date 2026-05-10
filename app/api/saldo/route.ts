@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server'
-import { supabase, isNoCiclo } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-server'
+import { isNoCiclo } from '@/lib/supabase'
 
 export async function GET() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+
   const [
     { data: lancamentos },
     { data: fixosData },
@@ -17,7 +22,7 @@ export async function GET() {
   const diaReset = configData?.dia_reset ?? 1
   const all      = (lancamentos ?? []) as { valor: number; tipo: string; data: string }[]
 
-  const ciclo      = all.filter(l => isNoCiclo(l.data, diaReset))
+  const ciclo       = all.filter(l => isNoCiclo(l.data, diaReset))
   const ganhosCiclo = ciclo.filter(l => l.tipo === 'ganho').reduce((s, l) => s + l.valor, 0)
   const gastosCiclo = ciclo.filter(l => l.tipo === 'gasto').reduce((s, l) => s + l.valor, 0)
 
