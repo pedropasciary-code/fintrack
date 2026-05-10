@@ -34,13 +34,13 @@ export default async function CategoriasPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold">Gastos por categoria</h1>
-        <span className="text-sm text-gray-400">
-          Total: <strong className="text-gray-700">{fmtBRL(totalMes)}</strong> este ciclo
+        <span className="text-sm text-gray-400 dark:text-gray-500">
+          Total: <strong className="text-gray-700 dark:text-gray-200">{fmtBRL(totalMes)}</strong> este ciclo
         </span>
       </div>
 
       {entries.length === 0 ? (
-        <div className="card p-8 text-center text-sm text-gray-400">
+        <div className="card p-8 text-center text-sm text-gray-400 dark:text-gray-500">
           Nenhum gasto registrado neste ciclo.
         </div>
       ) : (
@@ -62,7 +62,7 @@ export default async function CategoriasPage() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm font-medium text-gray-800">
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-100">
                         {catInfo?.label ?? cat}
                       </span>
                       <span className="text-sm font-semibold" style={{ color }}>
@@ -70,23 +70,20 @@ export default async function CategoriasPage() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full"
-                          style={{ width: `${pct}%`, background: color }}
-                        />
+                      <div className="flex-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
                       </div>
-                      <span className="text-xs text-gray-400 w-8 text-right">{pct}%</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500 w-8 text-right">{pct}%</span>
                     </div>
                   </div>
                 </div>
 
-                <ul className="divide-y divide-gray-50 mt-2">
+                <ul className="divide-y divide-gray-50 dark:divide-gray-700/50 mt-2">
                   {items.slice(0, 5).map(l => (
                     <li key={l.id} className="flex items-center justify-between py-2">
                       <div>
-                        <p className="text-sm text-gray-700">{l.descricao}</p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-sm text-gray-700 dark:text-gray-200">{l.descricao}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
                           {new Date(l.data + 'T12:00:00').toLocaleDateString('pt-BR')}
                         </p>
                       </div>
@@ -94,7 +91,7 @@ export default async function CategoriasPage() {
                     </li>
                   ))}
                   {items.length > 5 && (
-                    <li className="pt-2 text-xs text-gray-400">
+                    <li className="pt-2 text-xs text-gray-400 dark:text-gray-500">
                       +{items.length - 5} lançamento(s) não exibido(s)
                     </li>
                   )}

@@ -132,7 +132,7 @@ export default function ParcelamentosPage() {
 
       {/* Formulário */}
       <div className="card p-6 max-w-xl mb-6">
-        <h2 className="text-sm font-medium text-gray-700 mb-4">Adicionar parcelamento</h2>
+        <h2 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-4">Adicionar parcelamento</h2>
         <div className="mb-4">
           <label className="label">Descrição</label>
           <input className="field" placeholder="Ex: Geladeira, iPhone, Curso..." value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} />
@@ -244,25 +244,25 @@ export default function ParcelamentosPage() {
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-0.5">
-                              <p className="text-sm font-medium text-gray-800">{p.descricao}</p>
+                              <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{p.descricao}</p>
                               <p className="text-sm font-medium text-red-500">−{fmtBRL(p.valor_parcela)}/mês</p>
                             </div>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-gray-400 dark:text-gray-500">
                               {cat?.label ?? p.categoria} · parcela {p.parcelas_pagas + 1}/{p.num_parcelas} · {p.num_parcelas - p.parcelas_pagas} restante(s)
                             </p>
                           </div>
                         </div>
-                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-3">
+                        <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden mb-3">
                           <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
                         </div>
                         <div className="flex gap-2">
                           <button onClick={() => pagarParcela(p)} className="btn-primary text-xs py-1.5 px-4 flex items-center gap-1 flex-1 justify-center">
                             <Plus size={12} /> Registrar parcela paga
                           </button>
-                          <button onClick={() => startEdit(p)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
+                          <button onClick={() => startEdit(p)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
                             <Pencil size={14} />
                           </button>
-                          <button onClick={() => setConfirmId(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
+                          <button onClick={() => setConfirmId(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -276,19 +276,19 @@ export default function ParcelamentosPage() {
 
           {concluidos.length > 0 && (
             <div className="card">
-              <div className="px-5 py-4 border-b border-gray-100">
+              <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
                 <h2 className="text-sm font-medium text-gray-400">Concluídos</h2>
               </div>
               <ul>
                 {concluidos.map(p => {
                   const cat = CATS_GASTO.find(c => c.value === p.categoria)
                   return (
-                    <li key={p.id} className="flex items-center gap-3 px-5 py-3 border-b border-gray-50 last:border-0 opacity-50">
+                    <li key={p.id} className="flex items-center gap-3 px-5 py-3 border-b border-gray-50 dark:border-gray-700/50 last:border-0 opacity-50">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-700">{p.descricao}</p>
-                        <p className="text-xs text-gray-400">{cat?.label} · {p.num_parcelas}× {fmtBRL(p.valor_parcela)} · quitado</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-200">{p.descricao}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{cat?.label} · {p.num_parcelas}× {fmtBRL(p.valor_parcela)} · quitado</p>
                       </div>
-                      <button onClick={() => setConfirmId(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
+                      <button onClick={() => setConfirmId(p.id)} className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
                         <Trash2 size={13} />
                       </button>
                     </li>

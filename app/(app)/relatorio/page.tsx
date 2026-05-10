@@ -35,26 +35,25 @@ export default async function RelatorioPage() {
     .sort((a, b) => (catAtual[b] ?? 0) - (catAtual[a] ?? 0))
 
   const summaryRows = [
-    { label: 'Ganhos',  atual: ganhosAtual,               anterior: ganhosAnterior,               goodWhenPositive: true  },
+    { label: 'Ganhos',  atual: ganhosAtual,               anterior: ganhosAnterior,                goodWhenPositive: true  },
     { label: 'Gastos',  atual: gastosAtual,                anterior: gastosAnterior,                goodWhenPositive: false },
-    { label: 'Saldo',   atual: ganhosAtual - gastosAtual,  anterior: ganhosAnterior - gastosAnterior, goodWhenPositive: true  },
+    { label: 'Saldo',   atual: ganhosAtual - gastosAtual,  anterior: ganhosAnterior - gastosAnterior, goodWhenPositive: true },
   ]
 
   return (
     <div>
       <h1 className="text-xl font-semibold mb-2">Relatório comparativo</h1>
-      <p className="text-sm text-gray-400 mb-6">Ciclo atual vs ciclo anterior</p>
+      <p className="text-sm text-gray-400 dark:text-gray-500 mb-6">Ciclo atual vs ciclo anterior</p>
 
-      {/* Resumo */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {summaryRows.map(({ label, atual: a, anterior: ant, goodWhenPositive }) => {
           const pct    = pctChange(a, ant)
           const isGood = goodWhenPositive ? pct >= 0 : pct <= 0
           return (
             <div key={label} className="card p-5">
-              <p className="text-xs text-gray-400 uppercase tracking-wide mb-3">{label}</p>
-              <p className="text-lg font-semibold text-gray-800 mb-1">{fmtBRL(a)}</p>
-              <p className="text-xs text-gray-400 mb-2">Anterior: {fmtBRL(ant)}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">{label}</p>
+              <p className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">{fmtBRL(a)}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">Anterior: {fmtBRL(ant)}</p>
               {ant !== 0 && (
                 <span className={`text-xs font-medium ${isGood ? 'text-brand-400' : 'text-red-500'}`}>
                   {pct >= 0 ? '+' : ''}{pct}% vs anterior
@@ -65,20 +64,19 @@ export default async function RelatorioPage() {
         })}
       </div>
 
-      {/* Por categoria */}
       <div className="card">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-medium text-gray-700">Gastos por categoria</h2>
+        <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="text-sm font-medium text-gray-700 dark:text-gray-200">Gastos por categoria</h2>
         </div>
 
         {allCats.length === 0 ? (
-          <p className="px-5 py-8 text-center text-sm text-gray-400">
+          <p className="px-5 py-8 text-center text-sm text-gray-400 dark:text-gray-500">
             Sem dados suficientes em dois ciclos para comparar.
           </p>
         ) : (
           <div className="overflow-x-auto">
             <div className="min-w-[380px]">
-              <div className="grid grid-cols-4 px-5 py-2 text-xs text-gray-400 uppercase tracking-wide border-b border-gray-50">
+              <div className="grid grid-cols-4 px-5 py-2 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide border-b border-gray-50 dark:border-gray-700/50">
                 <span className="col-span-2">Categoria</span>
                 <span className="text-right">Ciclo atual</span>
                 <span className="text-right">Anterior</span>
@@ -89,18 +87,18 @@ export default async function RelatorioPage() {
                 const ant     = catAnterior[cat] ?? 0
                 const pct     = pctChange(a, ant)
                 return (
-                  <div key={cat} className="grid grid-cols-4 items-center px-5 py-3 border-b border-gray-50 last:border-0">
+                  <div key={cat} className="grid grid-cols-4 items-center px-5 py-3 border-b border-gray-50 dark:border-gray-700/50 last:border-0">
                     <div className="col-span-2 flex items-center gap-2">
                       <span>{catInfo?.emoji ?? '📦'}</span>
-                      <span className="text-sm text-gray-700">{catInfo?.label ?? cat}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">{catInfo?.label ?? cat}</span>
                       {ant > 0 && a !== ant && (
                         <span className={`text-xs font-medium ${a < ant ? 'text-brand-400' : 'text-red-500'}`}>
                           {pct >= 0 ? '+' : ''}{pct}%
                         </span>
                       )}
                     </div>
-                    <span className="text-sm text-right font-medium text-gray-800">{a > 0 ? fmtBRL(a) : '—'}</span>
-                    <span className="text-sm text-right text-gray-400">{ant > 0 ? fmtBRL(ant) : '—'}</span>
+                    <span className="text-sm text-right font-medium text-gray-800 dark:text-gray-100">{a > 0 ? fmtBRL(a) : '—'}</span>
+                    <span className="text-sm text-right text-gray-400 dark:text-gray-500">{ant > 0 ? fmtBRL(ant) : '—'}</span>
                   </div>
                 )
               })}

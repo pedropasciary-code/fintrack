@@ -124,7 +124,7 @@ export default async function DashboardPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold">Dashboard</h1>
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-gray-400 dark:text-gray-500">
           {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
         </p>
       </div>
@@ -142,7 +142,7 @@ export default async function DashboardPage() {
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="card p-4">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-gray-400 uppercase tracking-wide">{label}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">{label}</p>
               <Icon size={14} className={color} />
             </div>
             <p className={`text-lg font-semibold ${color}`}>{value}</p>
@@ -181,21 +181,21 @@ export default async function DashboardPage() {
           <p className={`text-lg font-semibold ${saldoFimCiclo >= 0 ? 'text-brand-400' : 'text-red-500'}`}>
             {fmtBRL(saldoFimCiclo)}
           </p>
-          <p className="text-xs text-gray-400 mt-1">{diasRestantes} dias restantes</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{diasRestantes} dias restantes</p>
         </div>
       </div>
 
       {/* Compromissos mensais (chips) */}
       {(fixosAtivos.length > 0 || parcelamentosAtivos.length > 0) && (
         <div className="card p-4 mb-4">
-          <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">Compromissos mensais</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">Compromissos mensais</p>
           <div className="flex flex-wrap gap-2">
             {fixosAtivos.map(f => {
               const cat = ALL_CATS.find(c => c.value === f.categoria)
               return (
-                <div key={`f-${f.id}`} className="flex items-center gap-1.5 bg-gray-50 rounded-lg px-3 py-1.5 text-xs">
+                <div key={`f-${f.id}`} className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-700 rounded-lg px-3 py-1.5 text-xs">
                   <span>{cat?.emoji ?? '📦'}</span>
-                  <span className="text-gray-600">{f.descricao}</span>
+                  <span className="text-gray-600 dark:text-gray-300">{f.descricao}</span>
                   <span className={`font-medium ${f.tipo === 'ganho' ? 'text-brand-400' : 'text-red-500'}`}>
                     {f.tipo === 'ganho' ? '+' : '−'}{fmtBRL(f.valor)}
                   </span>
@@ -205,10 +205,10 @@ export default async function DashboardPage() {
             {parcelamentosAtivos.map(p => {
               const cat = ALL_CATS.find(c => c.value === p.categoria)
               return (
-                <div key={`p-${p.id}`} className="flex items-center gap-1.5 bg-amber-50 rounded-lg px-3 py-1.5 text-xs">
+                <div key={`p-${p.id}`} className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-900/20 rounded-lg px-3 py-1.5 text-xs">
                   <span>{cat?.emoji ?? '📦'}</span>
-                  <span className="text-gray-600">{p.descricao}</span>
-                  <span className="text-gray-400">{p.parcelas_pagas + 1}/{p.num_parcelas}</span>
+                  <span className="text-gray-600 dark:text-gray-300">{p.descricao}</span>
+                  <span className="text-gray-400 dark:text-gray-500">{p.parcelas_pagas + 1}/{p.num_parcelas}</span>
                   <span className="font-medium text-amber-600">−{fmtBRL(p.valor_parcela)}</span>
                 </div>
               )
@@ -220,7 +220,7 @@ export default async function DashboardPage() {
       {/* Metas */}
       {metas.length > 0 && (
         <div className="card p-4 mb-4">
-          <p className="text-xs text-gray-400 uppercase tracking-wide mb-3">Metas de economia</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">Metas de economia</p>
           <div className="space-y-3">
             {metas.map(meta => {
               const pct      = meta.valor_alvo > 0 ? Math.min(100, Math.round((saldoCumulativo / meta.valor_alvo) * 100)) : 0
@@ -229,10 +229,10 @@ export default async function DashboardPage() {
               return (
                 <div key={meta.id}>
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-700">{meta.descricao}</span>
-                    <span className="text-gray-400 text-xs">{pct}% · {fmtBRL(meta.valor_alvo)}</span>
+                    <span className="text-gray-700 dark:text-gray-200">{meta.descricao}</span>
+                    <span className="text-gray-400 dark:text-gray-500 text-xs">{pct}% · {fmtBRL(meta.valor_alvo)}</span>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: barColor }} />
                   </div>
                 </div>
@@ -246,12 +246,12 @@ export default async function DashboardPage() {
 
       {/* Recentes */}
       <div className="card mt-4">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-medium text-gray-700">Lançamentos recentes</h2>
-          <span className="text-xs text-gray-400">{lancamentos.length} no total</span>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="text-sm font-medium text-gray-700 dark:text-gray-200">Lançamentos recentes</h2>
+          <span className="text-xs text-gray-400 dark:text-gray-500">{lancamentos.length} no total</span>
         </div>
         {lancamentos.length === 0 ? (
-          <p className="px-5 py-8 text-center text-sm text-gray-400">
+          <p className="px-5 py-8 text-center text-sm text-gray-400 dark:text-gray-500">
             Nenhum lançamento ainda. Vá em &ldquo;Lançar&rdquo; para começar.
           </p>
         ) : (
@@ -259,13 +259,13 @@ export default async function DashboardPage() {
             {lancamentos.slice(0, 8).map(l => {
               const cat = ALL_CATS.find(c => c.value === l.categoria)
               return (
-                <li key={l.id} className="flex items-center gap-3 px-5 py-3 border-b border-gray-50 last:border-0">
+                <li key={l.id} className="flex items-center gap-3 px-5 py-3 border-b border-gray-50 dark:border-gray-700/50 last:border-0">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0" style={{ background: (CAT_COLORS[l.categoria] ?? '#B4B2A9') + '22' }}>
                     {cat?.emoji ?? '📦'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-800 truncate">{l.descricao}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-sm text-gray-800 dark:text-gray-100 truncate">{l.descricao}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">
                       {cat?.label ?? l.categoria} · {new Date(l.data + 'T12:00:00').toLocaleDateString('pt-BR')}
                     </p>
                   </div>

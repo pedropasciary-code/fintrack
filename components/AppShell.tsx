@@ -17,12 +17,12 @@ export default function AppShell({
   useEffect(() => { setOpen(false) }, [path])
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       {/* Mobile top bar */}
-      <header className="md:hidden fixed top-0 inset-x-0 z-30 h-14 bg-white border-b border-gray-100 flex items-center px-4 gap-3">
+      <header className="md:hidden fixed top-0 inset-x-0 z-30 h-14 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 flex items-center px-4 gap-3">
         <button
           onClick={() => setOpen(true)}
-          className="p-1 text-gray-500 hover:text-gray-800 transition-colors"
+          className="p-1 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 transition-colors"
         >
           <Menu size={20} />
         </button>

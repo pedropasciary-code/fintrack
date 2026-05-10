@@ -102,7 +102,7 @@ export default function MetasPage() {
 
       {/* Formulário de adição */}
       <div className="card p-6 max-w-xl mb-6">
-        <h2 className="text-sm font-medium text-gray-700 mb-4">Adicionar meta</h2>
+        <h2 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-4">Adicionar meta</h2>
         <div className="mb-4">
           <label className="label">Descrição</label>
           <input className="field" placeholder="Ex: Viagem, Reserva de emergência, Notebook..." value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} />
@@ -183,24 +183,24 @@ export default function MetasPage() {
                       <div>
                         <div className="flex items-center gap-2 mb-0.5">
                           {atingida && <Trophy size={14} className="text-brand-400" />}
-                          <p className="text-sm font-medium text-gray-800">{meta.descricao}</p>
+                          <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{meta.descricao}</p>
                         </div>
                         {meta.prazo && (
-                          <p className="text-xs text-gray-400">
+                          <p className="text-xs text-gray-400 dark:text-gray-500">
                             Prazo: {new Date(meta.prazo + 'T12:00:00').toLocaleDateString('pt-BR')}
                           </p>
                         )}
                       </div>
                       <div className="flex items-center gap-1">
-                        <button onClick={() => startEdit(meta)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
+                        <button onClick={() => startEdit(meta)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
                           <Pencil size={13} />
                         </button>
-                        <button onClick={() => setConfirmId(meta.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
+                        <button onClick={() => setConfirmId(meta.id)} className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
                           <Trash2 size={13} />
                         </button>
                       </div>
                     </div>
-                    <div className="h-3 bg-gray-100 rounded-full overflow-hidden mb-2">
+                    <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden mb-2">
                       <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: barColor }} />
                     </div>
                     <div className="flex justify-between text-xs text-gray-400 mb-2">
@@ -210,7 +210,7 @@ export default function MetasPage() {
                     {atingida ? (
                       <p className="text-xs font-medium" style={{ color: barColor }}>Meta atingida! 🎉</p>
                     ) : (
-                      <p className="text-xs text-gray-400">Faltam {fmtBRL(faltam)} · {pct}% concluído</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500">Faltam {fmtBRL(faltam)} · {pct}% concluído</p>
                     )}
                   </>
                 )}

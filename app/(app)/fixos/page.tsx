@@ -121,7 +121,7 @@ export default function FixosPage() {
 
       {/* Formulário */}
       <div className="card p-6 max-w-xl mb-6">
-        <h2 className="text-sm font-medium text-gray-700 mb-4">Adicionar fixo</h2>
+        <h2 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-4">Adicionar fixo</h2>
 
         <div className="mb-4">
           <label className="label">Tipo</label>
@@ -185,8 +185,8 @@ export default function FixosPage() {
         <div className="card p-8 text-center text-sm text-gray-400">Nenhum fixo cadastrado ainda.</div>
       ) : (
         <div className="card">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h2 className="text-sm font-medium text-gray-700">Seus fixos mensais</h2>
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="text-sm font-medium text-gray-700 dark:text-gray-200">Seus fixos mensais</h2>
           </div>
           <ul>
             {fixos.map(fixo => {
@@ -195,22 +195,22 @@ export default function FixosPage() {
               return (
                 <li
                   key={fixo.id}
-                  className={`flex items-center gap-3 px-5 py-3 border-b border-gray-50 last:border-0 transition-opacity ${!fixo.ativo ? 'opacity-40' : ''}`}
+                  className={`flex items-center gap-3 px-5 py-3 border-b border-gray-50 dark:border-gray-700/50 last:border-0 transition-opacity ${!fixo.ativo ? 'opacity-40' : ''}`}
                 >
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0" style={{ background: (CAT_COLORS[fixo.categoria] ?? '#B4B2A9') + '22' }}>
                     {cat?.emoji ?? '📦'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-800">{fixo.descricao}</p>
-                    <p className="text-xs text-gray-400">{cat?.label ?? fixo.categoria} · todo dia {fixo.dia_vencimento}</p>
+                    <p className="text-sm text-gray-800 dark:text-gray-100">{fixo.descricao}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{cat?.label ?? fixo.categoria} · todo dia {fixo.dia_vencimento}</p>
                   </div>
                   <p className={`text-sm font-medium shrink-0 ${isGanho ? 'text-brand-400' : 'text-red-500'}`}>
                     {isGanho ? '+' : '−'}{fmtBRL(fixo.valor)}
                   </p>
-                  <button onClick={() => toggleAtivo(fixo)} title={fixo.ativo ? 'Desativar' : 'Ativar'} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
+                  <button onClick={() => toggleAtivo(fixo)} title={fixo.ativo ? 'Desativar' : 'Ativar'} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
                     <Power size={14} />
                   </button>
-                  <button onClick={() => setConfirmId(fixo.id)} title="Remover" className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
+                  <button onClick={() => setConfirmId(fixo.id)} title="Remover" className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
                     <Trash2 size={14} />
                   </button>
                 </li>

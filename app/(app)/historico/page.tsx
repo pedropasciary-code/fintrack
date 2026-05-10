@@ -130,7 +130,7 @@ export default function HistoricoPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold">Histórico</h1>
         {!fetching && (
-          <span className="text-sm text-gray-400">
+          <span className="text-sm text-gray-400 dark:text-gray-500">
             {lancamentos.length} de {total} lançamento(s)
           </span>
         )}
@@ -175,7 +175,7 @@ export default function HistoricoPage() {
           </button>
         </div>
       ) : lancamentos.length === 0 ? (
-        <div className="card p-8 text-center text-sm text-gray-400">Nenhum lançamento encontrado.</div>
+        <div className="card p-8 text-center text-sm text-gray-400 dark:text-gray-500">Nenhum lançamento encontrado.</div>
       ) : (
         <>
           <div className="card">
@@ -185,7 +185,7 @@ export default function HistoricoPage() {
                 const isEditing = editingId === l.id
 
                 return (
-                  <li key={l.id} className="border-b border-gray-50 last:border-0">
+                  <li key={l.id} className="border-b border-gray-50 dark:border-gray-700/50 last:border-0">
                     {isEditing ? (
                       <div className="px-5 py-4 space-y-3">
                         <div className="flex gap-2">
@@ -224,18 +224,18 @@ export default function HistoricoPage() {
                           {cat?.emoji ?? '📦'}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-800 truncate">{l.descricao}</p>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-sm text-gray-800 dark:text-gray-100 truncate">{l.descricao}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">
                             {cat?.label ?? l.categoria} · {new Date(l.data + 'T12:00:00').toLocaleDateString('pt-BR')}
                           </p>
                         </div>
                         <p className={`text-sm font-medium shrink-0 ${l.tipo === 'gasto' ? 'text-red-500' : 'text-brand-400'}`}>
                           {l.tipo === 'gasto' ? '−' : '+'}{fmtBRL(l.valor)}
                         </p>
-                        <button onClick={() => startEdit(l)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
+                        <button onClick={() => startEdit(l)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
                           <Pencil size={13} />
                         </button>
-                        <button onClick={() => setConfirmId(l.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
+                        <button onClick={() => setConfirmId(l.id)} className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
                           <Trash2 size={13} />
                         </button>
                       </div>

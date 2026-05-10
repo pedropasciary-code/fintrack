@@ -7,6 +7,7 @@ import {
   LogOut, type LucideIcon,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import ThemeToggle from './ThemeToggle'
 
 type NavLink = { href: string; label: string; icon: LucideIcon }
 type NavItem = NavLink | '---'
@@ -36,9 +37,10 @@ export default function Sidebar({ userEmail }: { userEmail: string }) {
     router.push('/login')
     router.refresh()
   }
+
   return (
-    <aside className="h-full w-52 shrink-0 bg-white border-r border-gray-100 flex flex-col">
-      <div className="px-5 py-5 border-b border-gray-100">
+    <aside className="h-full w-52 shrink-0 bg-white dark:bg-gray-800 border-r border-gray-100 dark:border-gray-700 flex flex-col">
+      <div className="px-5 py-5 border-b border-gray-100 dark:border-gray-700">
         <span className="text-base font-semibold">
           fin<span className="text-brand-400">track</span>
         </span>
@@ -46,15 +48,15 @@ export default function Sidebar({ userEmail }: { userEmail: string }) {
       <nav className="flex-1 py-3 overflow-y-auto">
         {NAV.map((item, i) =>
           item === '---' ? (
-            <hr key={i} className="mx-4 my-2 border-gray-100" />
+            <hr key={i} className="mx-4 my-2 border-gray-100 dark:border-gray-700" />
           ) : (
             <Link
               key={item.href}
               href={item.href}
               className={`flex items-center gap-3 px-5 py-2.5 text-sm transition-colors border-l-2 ${
                 path === item.href
-                  ? 'text-brand-400 border-brand-400 bg-brand-50 font-medium'
-                  : 'text-gray-500 border-transparent hover:text-gray-800 hover:bg-gray-50'
+                  ? 'text-brand-400 border-brand-400 bg-brand-50 dark:bg-brand-400/10 font-medium'
+                  : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-800 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700/50'
               }`}
             >
               <item.icon size={15} />
@@ -63,19 +65,22 @@ export default function Sidebar({ userEmail }: { userEmail: string }) {
           )
         )}
       </nav>
-      <div className="px-5 py-4 border-t border-gray-100 space-y-3">
-        <p className="text-xs text-gray-400">
+      <div className="px-5 py-4 border-t border-gray-100 dark:border-gray-700 space-y-3">
+        <p className="text-xs text-gray-400 dark:text-gray-500">
           {new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
         </p>
         <div className="flex items-center justify-between gap-2">
-          <p className="text-xs text-gray-500 truncate">{userEmail}</p>
-          <button
-            onClick={handleLogout}
-            title="Sair"
-            className="text-gray-400 hover:text-red-500 transition-colors shrink-0"
-          >
-            <LogOut size={14} />
-          </button>
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{userEmail}</p>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              onClick={handleLogout}
+              title="Sair"
+              className="text-gray-400 hover:text-red-500 transition-colors shrink-0"
+            >
+              <LogOut size={14} />
+            </button>
+          </div>
         </div>
       </div>
     </aside>

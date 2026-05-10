@@ -14,14 +14,14 @@ export default function ConfirmModal({ open, message, confirmLabel = 'Excluir', 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
-      <div className="relative bg-white rounded-2xl shadow-lg p-6 w-full max-w-sm">
+      <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 w-full max-w-sm border border-gray-100 dark:border-gray-700">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0">
             <AlertTriangle size={16} className="text-red-500" />
           </div>
-          <p className="text-sm font-medium text-gray-800">Confirmar exclusão</p>
+          <p className="text-sm font-medium text-gray-800 dark:text-gray-100">Confirmar exclusão</p>
         </div>
-        <p className="text-sm text-gray-500 mb-5">{message}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">{message}</p>
         <div className="flex gap-3">
           <button onClick={onCancel} className="flex-1 btn-secondary">
             Cancelar
