@@ -29,7 +29,7 @@ export default async function RelatorioPage() {
   atual.filter(l => l.tipo === 'gasto').forEach(l => { catAtual[l.categoria] = (catAtual[l.categoria] ?? 0) + l.valor })
   anterior.filter(l => l.tipo === 'gasto').forEach(l => { catAnterior[l.categoria] = (catAnterior[l.categoria] ?? 0) + l.valor })
 
-  const allCats = [...new Set([...Object.keys(catAtual), ...Object.keys(catAnterior)])]
+  const allCats = Array.from(new Set([...Object.keys(catAtual), ...Object.keys(catAnterior)]))
     .sort((a, b) => (catAtual[b] ?? 0) - (catAtual[a] ?? 0))
 
   const summaryRows = [
