@@ -46,7 +46,7 @@ export default async function RelatorioPage() {
       <p className="text-sm text-gray-400 mb-6">Ciclo atual vs ciclo anterior</p>
 
       {/* Resumo */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {summaryRows.map(({ label, atual: a, anterior: ant, goodWhenPositive }) => {
           const pct    = pctChange(a, ant)
           const isGood = goodWhenPositive ? pct >= 0 : pct <= 0
@@ -76,33 +76,35 @@ export default async function RelatorioPage() {
             Sem dados suficientes em dois ciclos para comparar.
           </p>
         ) : (
-          <div>
-            <div className="grid grid-cols-4 px-5 py-2 text-xs text-gray-400 uppercase tracking-wide border-b border-gray-50">
-              <span className="col-span-2">Categoria</span>
-              <span className="text-right">Ciclo atual</span>
-              <span className="text-right">Anterior</span>
-            </div>
-            {allCats.map(cat => {
-              const catInfo = ALL_CATS.find(c => c.value === cat)
-              const a       = catAtual[cat]    ?? 0
-              const ant     = catAnterior[cat] ?? 0
-              const pct     = pctChange(a, ant)
-              return (
-                <div key={cat} className="grid grid-cols-4 items-center px-5 py-3 border-b border-gray-50 last:border-0">
-                  <div className="col-span-2 flex items-center gap-2">
-                    <span>{catInfo?.emoji ?? '📦'}</span>
-                    <span className="text-sm text-gray-700">{catInfo?.label ?? cat}</span>
-                    {ant > 0 && a !== ant && (
-                      <span className={`text-xs font-medium ${a < ant ? 'text-brand-400' : 'text-red-500'}`}>
-                        {pct >= 0 ? '+' : ''}{pct}%
-                      </span>
-                    )}
+          <div className="overflow-x-auto">
+            <div className="min-w-[380px]">
+              <div className="grid grid-cols-4 px-5 py-2 text-xs text-gray-400 uppercase tracking-wide border-b border-gray-50">
+                <span className="col-span-2">Categoria</span>
+                <span className="text-right">Ciclo atual</span>
+                <span className="text-right">Anterior</span>
+              </div>
+              {allCats.map(cat => {
+                const catInfo = ALL_CATS.find(c => c.value === cat)
+                const a       = catAtual[cat]    ?? 0
+                const ant     = catAnterior[cat] ?? 0
+                const pct     = pctChange(a, ant)
+                return (
+                  <div key={cat} className="grid grid-cols-4 items-center px-5 py-3 border-b border-gray-50 last:border-0">
+                    <div className="col-span-2 flex items-center gap-2">
+                      <span>{catInfo?.emoji ?? '📦'}</span>
+                      <span className="text-sm text-gray-700">{catInfo?.label ?? cat}</span>
+                      {ant > 0 && a !== ant && (
+                        <span className={`text-xs font-medium ${a < ant ? 'text-brand-400' : 'text-red-500'}`}>
+                          {pct >= 0 ? '+' : ''}{pct}%
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-sm text-right font-medium text-gray-800">{a > 0 ? fmtBRL(a) : '—'}</span>
+                    <span className="text-sm text-right text-gray-400">{ant > 0 ? fmtBRL(ant) : '—'}</span>
                   </div>
-                  <span className="text-sm text-right font-medium text-gray-800">{a > 0 ? fmtBRL(a) : '—'}</span>
-                  <span className="text-sm text-right text-gray-400">{ant > 0 ? fmtBRL(ant) : '—'}</span>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
         )}
       </div>

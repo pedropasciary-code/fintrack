@@ -16,7 +16,7 @@ export default function DashboardCharts({
   barData: BarItem[]
 }) {
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="card p-5">
         <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">
           Gastos por categoria

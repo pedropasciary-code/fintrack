@@ -122,7 +122,7 @@ export default async function DashboardPage() {
       <AlertaBanner gastosSemanais={gastosSemanais} limiteSemanal={limiteSemanal} />
 
       {/* Row 1: métricas do ciclo */}
-      <div className="grid grid-cols-4 gap-4 mb-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
         {[
           { label: 'Saldo projetado',   value: fmtBRL(saldoProjetado),  icon: Wallet,       color: saldoProjetado >= 0  ? 'text-brand-400' : 'text-red-500' },
           { label: 'Ganhos do ciclo',   value: fmtBRL(ganhosCiclo),     icon: TrendingUp,   color: 'text-brand-400' },
@@ -140,7 +140,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Row 2: fixos + parcelamentos + projeção */}
-      <div className="grid grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
         <div className="card p-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs text-gray-400 uppercase tracking-wide">Ganhos fixos/mês</p>
